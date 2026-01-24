@@ -1,6 +1,7 @@
 import gpxpy
 import matplotlib.pyplot as plt
 from pathlib import Path
+from matplotlib import patheffects
 
 STRAVA_DIR = Path.home() / "Documents/GPXFiles"
 OUTPUT_IMAGE = Path.home() / "Pictures/runscaper/running_heatmap.png"
@@ -36,7 +37,7 @@ def plot_heatmap(all_runs, total_km):
         plt.plot(lons, lats, color=LINE_COLOR, alpha=0.6, linewidth=1, zorder=2)
 
     stats_text = f"Total Distance: {total_km:.1f} km"
-    plt.text(
+    txt = plt.text(
         0.95,
         0.05,
         stats_text,
@@ -47,6 +48,7 @@ def plot_heatmap(all_runs, total_km):
         ha="right",
         family="monospace",
     )
+    txt.set_path_effects([patheffects.withStroke(linewidth=3, foreground=BG_COLOR)])
 
     plt.gca().set_aspect("equal", adjustable="datalim")
     plt.axis("off")
