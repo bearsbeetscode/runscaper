@@ -6,6 +6,7 @@ STRAVA_DIR = Path.home() / "Documents/GPXFiles"
 OUTPUT_IMAGE = Path.home() / "Pictures/runscaper/running_heatmap.png"
 BG_COLOR = "#2E3440"
 LINE_COLOR = "#88C0D0"
+TXT_COLOR = "#ECEFF4"
 
 
 def get_coordinates(gpx_file):
@@ -13,14 +14,17 @@ def get_coordinates(gpx_file):
         gpx = gpxpy.parse(f)
 
     points = []
+    run_distance_meters = gpx.length_2d()
+
     for track in gpx.tracks:
         for segment in track.segments:
             for point in segment.points:
                 points.append((point.latitude, point.longitude))
-    return points
+    run_distance_km = run_distance_meters / 1000
+    return points, run_distance_km
 
 
-def plot_heatmap(all_runs):
+def plot_heatmap(all_runs, total_km):
     plt.figure(figsize=(16, 9), facecolor=BG_COLOR)
     ax = plt.gca()
     ax.set_facecolor(BG_COLOR)
@@ -28,6 +32,19 @@ def plot_heatmap(all_runs):
     for run in all_runs:
         lats, lons = zip(*run)
         plt.plot(lons, lats, color=LINE_COLOR, alpha=0.3, linewidth=1.5)
+
+    stats_text = f"Total Distance: {total_km:.1f} km"
+    plt.text(
+        0.95,
+        0.05,
+        stats_text,
+        transform=ax.transAxes,
+        color=TXT_COLOR,
+        fontsize=20,
+        fontweight="bold",
+        ha="right",
+        family="monospace",
+    )
 
     plt.gca().set_aspect("equal", adjustable="datalim")
     plt.axis("off")
@@ -43,9 +60,19 @@ def plot_heatmap(all_runs):
 
 def main():
     gpx_files = list(STRAVA_DIR.glob("*.gpx"))
-    all_runs = [get_coordinates(f) for f in gpx_files]
-    plot_heatmap(all_runs)
-    print(f"Heatmap saved to {OUTPUT_IMAGE}")
+
+    all_runs = []
+    grand_total_km = 0.0
+
+    for f in gpx_files:
+        coords, dist = get_coordinates(f)
+        if len(coords) > 2:
+            all_runs.append(coords)
+            grand_total_km += dist
+
+    if all_runs:
+        plot_heatmap(all_runs, grand_total_km)
+        print(f"Heatmap saved to {OUTPUT_IMAGE}")
 
 
 if __name__ == "__main__":
