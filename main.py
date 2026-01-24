@@ -1,3 +1,4 @@
+from datetime import datetime
 import gpxpy
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -9,6 +10,8 @@ BG_COLOR = "#2E3440"
 GLOW_COLOR = "#88C0D0"
 LINE_COLOR = "#E0F2F7"
 TXT_COLOR = "#ECEFF4"
+DAY_COLOR = "#88C0D0"
+NIGHT_COLOR = "#B48EAD"
 
 
 def get_coordinates(gpx_file):
@@ -16,27 +19,48 @@ def get_coordinates(gpx_file):
         gpx = gpxpy.parse(f)
 
     points = []
-    run_distance_meters = gpx.length_2d()
+    is_night = False
+
+    try:
+        first_point_time = gpx.tracks[0].segments[0].points[0].time
+        if first_point_time and hasattr(first_point_time, "hour"):
+            if first_point_time.hour >= 19 or first_point_time.hour < 6:
+                is_night = True
+    except (IndexError, AttributeError):
+        pass
 
     for track in gpx.tracks:
         for segment in track.segments:
             for point in segment.points:
                 points.append((point.latitude, point.longitude))
-    run_distance_km = run_distance_meters / 1000
-    return points, run_distance_km
+    run_distance_km = gpx.length_2d() / 1000
+    activity_type = "night" if is_night else "day"
+    return points, run_distance_km, activity_type
 
 
-def plot_heatmap(all_runs, total_km):
+def plot_heatmap(activity_data, total_km):
     plt.figure(figsize=(16, 9), facecolor=BG_COLOR)
     ax = plt.gca()
     ax.set_facecolor(BG_COLOR)
 
-    for run in all_runs:
-        lats, lons = zip(*run)
-        plt.plot(lons, lats, color=GLOW_COLOR, alpha=0.1, linewidth=4, zorder=1)
-        plt.plot(lons, lats, color=LINE_COLOR, alpha=0.6, linewidth=1, zorder=2)
+    for points, act_type in activity_data:
+        if not points:
+            continue
+        lats, lons = zip(*points)
 
-    stats_text = f"Total Distance: {total_km:.1f} km"
+        color = NIGHT_COLOR if act_type == "night" else DAY_COLOR
+        plt.plot(lons, lats, color=color, alpha=0.05, linewidth=8, zorder=1)
+        plt.plot(lons, lats, color=color, alpha=0.2, linewidth=3, zorder=2)
+        plt.plot(
+            lons,
+            lats,
+            color=color,
+            alpha=0.8,
+            linewidth=0.6,
+            zorder=3,
+            solid_joinstyle="round",
+        )
+    stats_text = f"Total Distance: {total_km:.1f} km."
     txt = plt.text(
         0.95,
         0.05,
@@ -65,17 +89,17 @@ def plot_heatmap(all_runs, total_km):
 def main():
     gpx_files = list(STRAVA_DIR.glob("*.gpx"))
 
-    all_runs = []
+    activity_data: list[tuple] = []
     grand_total_km = 0.0
 
     for f in gpx_files:
-        coords, dist = get_coordinates(f)
+        coords, dist, act_type = get_coordinates(f)
         if len(coords) > 2:
-            all_runs.append(coords)
+            activity_data.append((coords, act_type))
             grand_total_km += dist
 
-    if all_runs:
-        plot_heatmap(all_runs, grand_total_km)
+    if activity_data:
+        plot_heatmap(activity_data, grand_total_km)
         print(f"Heatmap saved to {OUTPUT_IMAGE}")
 
 
