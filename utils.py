@@ -6,6 +6,7 @@ def get_coordinates(gpx_file):
         gpx = gpxpy.parse(f)
 
     points = []
+    elevations = []
     is_night = False
 
     try:
@@ -20,6 +21,8 @@ def get_coordinates(gpx_file):
         for segment in track.segments:
             for point in segment.points:
                 points.append((point.latitude, point.longitude))
+                elevations.append(point.elevation if point.elevation is not None else 0)
+
     run_distance_km = gpx.length_2d() / 1000
     activity_type = "night" if is_night else "day"
-    return points, run_distance_km, activity_type
+    return points, run_distance_km, activity_type, elevations

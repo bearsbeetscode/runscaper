@@ -9,12 +9,19 @@ def plot_heatmap(activity_data, total_km):
     ax = plt.gca()
     ax.set_facecolor(config.BG_COLOR)
 
-    for points, act_type in activity_data:
+    all_lats, all_lons = [], []
+    highest_alt = 0
+
+    for points, act_type, elevations in activity_data:
         if not points:
             continue
         lats, lons = zip(*points)
+        all_lats.extend(lats)
+        all_lons.extend(lons)
+        highest_alt = max(highest_alt, max(elevations))
 
         color = config.NIGHT_COLOR if act_type == "night" else config.DAY_COLOR
+
         plt.plot(lons, lats, color=color, alpha=0.05, linewidth=8, zorder=1)
         plt.plot(lons, lats, color=color, alpha=0.2, linewidth=3, zorder=2)
         plt.plot(
@@ -26,7 +33,16 @@ def plot_heatmap(activity_data, total_km):
             zorder=3,
             solid_joinstyle="round",
         )
-    stats_text = f"Total Distance: {total_km:.1f} km."
+
+    if all_lats:
+        max_dist = max(
+            max(abs(lat - config.HOME_LAT) for lat in all_lats),
+            max(abs(lon - config.HOME_LON) for lon in all_lons),
+        )
+        padding = max_dist * 1.1
+        ax.set_ylim(config.HOME_LAT - padding, config.HOME_LAT + padding)
+        ax.set_xlim(config.HOME_LON - padding, config.HOME_LON + padding)
+    stats_text = f"Total Distance: {total_km:.1f} km.\nPeak: {highest_alt:.0f} m"
     txt = plt.text(
         0.95,
         0.05,
@@ -61,13 +77,13 @@ def plot_heatmap(activity_data, total_km):
 def main():
     gpx_files = list(config.STRAVA_DIR.glob("*.gpx"))
 
-    activity_data: list[tuple] = []
+    activity_data = []
     grand_total_km = 0.0
 
     for f in gpx_files:
-        coords, dist, act_type = utils.get_coordinates(f)
+        coords, dist, act_type, elevs = utils.get_coordinates(f)
         if len(coords) > 2:
-            activity_data.append((coords, act_type))
+            activity_data.append((coords, act_type, elevs))
             grand_total_km += dist
 
     if activity_data:
