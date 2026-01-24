@@ -5,7 +5,8 @@ from pathlib import Path
 STRAVA_DIR = Path.home() / "Documents/GPXFiles"
 OUTPUT_IMAGE = Path.home() / "Pictures/runscaper/running_heatmap.png"
 BG_COLOR = "#2E3440"
-LINE_COLOR = "#88C0D0"
+GLOW_COLOR = "#88C0D0"
+LINE_COLOR = "#E0F2F7"
 TXT_COLOR = "#ECEFF4"
 
 
@@ -31,7 +32,8 @@ def plot_heatmap(all_runs, total_km):
 
     for run in all_runs:
         lats, lons = zip(*run)
-        plt.plot(lons, lats, color=LINE_COLOR, alpha=0.3, linewidth=1.5)
+        plt.plot(lons, lats, color=GLOW_COLOR, alpha=0.1, linewidth=4, zorder=1)
+        plt.plot(lons, lats, color=LINE_COLOR, alpha=0.6, linewidth=1, zorder=2)
 
     stats_text = f"Total Distance: {total_km:.1f} km"
     plt.text(
