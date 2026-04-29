@@ -7,13 +7,6 @@ import utils
 from datetime import datetime
 
 
-def save_stats_for_widget(total_km, peak_alt, last_date):
-    stats_string = f"{total_km:.1f} km {peak_alt:.0f} {last_date}"
-
-    with open(config.STATS_FILE, "w") as f:
-        f.write(stats_string)
-
-
 def plot_heatmap(activity_data):
     """
     Generates PNG heatmap of activities.
@@ -56,7 +49,7 @@ def plot_heatmap(activity_data):
             lons,
             lats,
             color=color,
-            alpha=0.1,
+            alpha=0.15,
             antialiased=True,
             linewidth=6,
             zorder=z_order_base,
@@ -67,7 +60,8 @@ def plot_heatmap(activity_data):
             lats,
             color=color,
             alpha=alpha_main,
-            linewidth=3,
+            linewidth=2,
+            antialiased=True,
             zorder=z_order_base + 1,
             solid_joinstyle="round",
         )
@@ -77,7 +71,7 @@ def plot_heatmap(activity_data):
             max(abs(lat - config.HOME_LAT) for lat in all_lats),
             max(abs(lon - config.HOME_LON) for lon in all_lons),
         )
-        padding = max_dist * 1.15
+        padding = max_dist * 1.2
         ax.set_ylim(config.HOME_LAT - padding, config.HOME_LAT + padding)
         ax.set_xlim(config.HOME_LON - padding, config.HOME_LON + padding)
 
@@ -88,7 +82,7 @@ def plot_heatmap(activity_data):
     plt.savefig(
         config.OUTPUT_IMAGE,
         facecolor=config.BG_COLOR,
-        dpi=300,
+        dpi=600,
         bbox_inches="tight",
         pad_inches=0,
     )

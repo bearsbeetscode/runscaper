@@ -2,15 +2,15 @@ from pathlib import Path
 
 
 # Paths
-STRAVA_DIR = Path.home() / "Documents/GPXFiles"
-OUTPUT_IMAGE = Path.home() / "Documents/runscaper/running_heatmap.png"
-STATS_FILE = Path.home() / "Documents/runscaper/run_stats.txt"
+STRAVA_DIR = Path(__file__).parent / "gpx_files"
+OUTPUT_IMAGE = Path(__file__).parent / "output_image" / "running_heatmap.png"
+STATS_FILE = Path(__file__).parent / "stats_folder" / "run_stats.txt"
 # Colors
-BG_COLOR = "#2E3440"
-TXT_COLOR = "#ECEFF4"
-RECENT_COLOR = "#88C0D0"
-PREVIOUS_COLOR = "#81A1C1"
-HISTORY_COLOR = "#4C566A"
+BG_COLOR = "#1E1E2E"
+TXT_COLOR = "#CDD6F4"
+RECENT_COLOR = "#F5C2E7"
+PREVIOUS_COLOR = "#CBA6F7"
+HISTORY_COLOR = "#7F849C"
 
 
 # Location, put coordinates that will be in the middle of wallpaper.
